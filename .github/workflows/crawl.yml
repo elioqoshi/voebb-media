@@ -1,0 +1,24 @@
+name: Crawl VÖBB games
+on:
+  schedule:
+    - cron: "30 4 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install requests
+      - run: python crawler.py games.json
+      - name: Save games.json
+        run: |
+          git config user.name "voebb-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add games.json
+          git diff --cached --quiet || git commit -m "Update games $(date -u +%F)"
+          git push
