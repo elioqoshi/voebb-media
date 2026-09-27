@@ -16,7 +16,7 @@
   --yellow:#F2C800; --on-yellow:#14213D; --free:#1F8A4C; --busy:#9AA1AE;
   --display:"Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
   --body:system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --side:320px;
+  --side:280px;
   box-sizing:border-box;
 }
 @media (prefers-color-scheme:dark){
@@ -31,11 +31,11 @@ body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.45 var(--body
 button,input,select{font:inherit;color:inherit}
 :focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
 
-.page{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:var(--side) minmax(0,1fr);gap:0 32px;padding:0 16px}
+.page{display:grid;grid-template-columns:minmax(var(--side),25%) minmax(0,1fr)}
 
-/* Sidebar. The side padding leaves room for focus rings, which the scroll box would otherwise clip. */
-.filters{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;overscroll-behavior:contain;
-  margin-left:-8px;padding:20px 10px 32px 8px;display:grid;gap:22px;align-content:start}
+/* Sidebar: a full-height left column. The side padding keeps focus rings and the scrollbar clear of the content. */
+.filters{position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;
+  padding:24px 28px 40px;border-right:1px solid var(--line);display:grid;gap:22px;align-content:start}
 .filters-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .filters-head h2{font:800 22px/1 var(--display);margin:0;margin-right:auto}
 .reset{border:1.5px solid var(--line);background:var(--card);border-radius:10px;padding:7px 12px;font-size:14px;font-weight:600;cursor:pointer}
@@ -66,7 +66,7 @@ select{width:100%;border:1px solid var(--line);background:var(--card);border-rad
 .closed{color:var(--soft);font-size:12px}
 
 /* Results */
-main{min-width:0;padding:20px 0 40px}
+main{min-width:0;padding:24px 40px 40px}
 h1{font:800 clamp(34px,6vw,52px)/.95 var(--display);letter-spacing:-.02em;margin:0}
 .meta{color:var(--soft);font-size:14px;margin:8px 0 0}
 .bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:18px 0 4px}
@@ -98,9 +98,10 @@ ul.games{list-style:none;margin:0;padding:0}
 
 /* Phones and small tablets: sidebar slides in from the left */
 @media (max-width:860px){
-  .page{grid-template-columns:minmax(0,1fr);padding:0 16px}
+  .page{grid-template-columns:minmax(0,1fr)}
+  main{padding:20px 16px 40px}
   .open-filters{display:inline-block}
-  .filters{position:fixed;inset:0 auto 0 0;z-index:20;width:min(90vw,380px);max-height:none;height:100%;margin:0;
+  .filters{position:fixed;inset:0 auto 0 0;z-index:20;width:min(90vw,380px);height:100%;border-right:0;
     background:var(--paper);padding:0 16px calc(24px + env(safe-area-inset-bottom,0px));
     transform:translateX(-105%);visibility:hidden;box-shadow:0 0 40px rgba(0,0,0,.25)}
   .filters.shown{transform:none;visibility:visible}
