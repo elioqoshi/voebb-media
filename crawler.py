@@ -55,6 +55,16 @@ def hits(h):
     return out
 
 def search(term, sort):
+    # VÖBB sometimes drops a connection mid-search. Paging depends on the session's form state,
+    # so start that search over rather than retrying the one page.
+    for attempt in range(3):
+        try: return search_once(term, sort)
+        except requests.RequestException as e:
+            log(f"'{term}' ({sort or 'default'}): {type(e).__name__}, starting this search again")
+            time.sleep(30)
+    sys.exit(f"'{term}' failed three times, keeping the old games.json")
+
+def search_once(term, sort):
     S, h = open_page(START)
     if not S: sys.exit("VÖBB refused new sessions for over 7 minutes")
     h = post(S, h, {"$Autosuggest": term, "$Select": "Bibliotheksbestand", "$Button": "Suchen"})
