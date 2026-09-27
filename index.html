@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14213D">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Library games Berlin</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EEF1F4; --card:#FFFFFF; --ink:#14213D; --soft:#5B6478; --line:#D5DAE2;
+  --yellow:#F2C800; --on-yellow:#14213D; --free:#1F8A4C; --busy:#9AA1AE;
+  --display:"Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --body:system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1628; --card:#16213A; --ink:#E8ECF3; --soft:#9AA3B6; --line:#26324D;
+    --free:#43C07A; --busy:#5B6478;
+  }
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.45 var(--body);-webkit-text-size-adjust:100%}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
+
+header{padding:20px 16px 8px;max-width:640px;margin:0 auto}
+h1{font:800 clamp(34px,10vw,52px)/.95 var(--display);letter-spacing:-.02em;margin:0}
+.meta{color:var(--soft);font-size:14px;margin:8px 0 0}
+
+.controls{position:sticky;top:0;z-index:5;background:var(--paper);padding:10px 16px 12px;border-bottom:1px solid var(--line)}
+.controls-in{max-width:640px;margin:0 auto;display:grid;gap:10px}
+.switch{display:grid;grid-template-columns:repeat(5,1fr);border:2px solid var(--ink);border-radius:14px;overflow:hidden}
+.switch button{border:0;background:transparent;padding:12px 0;font:800 20px/1 var(--display);cursor:pointer}
+.switch button+button{border-left:2px solid var(--ink)}
+.switch button[aria-pressed="true"]{background:var(--yellow);color:var(--on-yellow)}
+.row{display:flex;gap:8px;align-items:center}
+input[type=search]{flex:1;min-width:0;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:11px 12px;font-size:16px}
+.toggle{display:flex;align-items:center;gap:8px;font-size:15px;white-space:nowrap;cursor:pointer}
+.toggle input{width:20px;height:20px;accent-color:var(--free)}
+.libs-btn{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:10px 12px;font-size:15px;cursor:pointer;white-space:nowrap}
+
+main{max-width:640px;margin:0 auto;padding:8px 16px 40px}
+.count{color:var(--soft);font-size:14px;margin:10px 0}
+ul.games{list-style:none;margin:0;padding:0}
+.game{border-bottom:1px solid var(--line)}
+.game > button{all:unset;display:grid;grid-template-columns:1fr auto;gap:4px 12px;width:100%;padding:14px 0;cursor:pointer}
+.game > button:focus-visible{outline:3px solid var(--yellow)}
+.title{font-weight:600;font-size:17px}
+.plat{font:800 13px/1 var(--display);border:1.5px solid currentColor;border-radius:6px;padding:4px 6px;align-self:start}
+.avail{grid-column:1/-1;font-size:14px;color:var(--soft)}
+.avail b{color:var(--free);font-weight:600}
+.copies{list-style:none;margin:0 0 14px;padding:0;display:none}
+.game.open .copies{display:block}
+.copies li{display:grid;grid-template-columns:12px 1fr;gap:10px;padding:6px 0;font-size:15px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--busy);margin-top:6px}
+.dot.free{background:var(--free)}
+.small{color:var(--soft);font-size:13px}
+
+.empty{padding:32px 0;color:var(--soft)}
+.empty h2{font:800 24px/1.1 var(--display);color:var(--ink);margin:0 0 8px}
+.empty ol{padding-left:20px}
+.empty button{margin-top:8px;border:2px solid var(--ink);background:var(--yellow);color:var(--on-yellow);border-radius:10px;padding:10px 14px;font-weight:600;cursor:pointer}
+
+dialog{border:0;border-radius:18px 18px 0 0;margin:auto 0 0;width:100%;max-width:100%;max-height:80vh;padding:0;background:var(--card);color:var(--ink)}
+dialog::backdrop{background:rgba(10,15,30,.5)}
+.sheet-head{position:sticky;top:0;background:var(--card);display:flex;justify-content:space-between;align-items:center;padding:16px;border-bottom:1px solid var(--line)}
+.sheet-head h2{font:800 22px/1 var(--display);margin:0}
+.sheet-head button{border:0;background:var(--yellow);color:var(--on-yellow);border-radius:10px;padding:8px 14px;font-weight:600;cursor:pointer}
+.lib-list{padding:8px 16px calc(24px + env(safe-area-inset-bottom,0px))}
+.lib-list label{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.lib-list input{width:20px;height:20px;accent-color:var(--ink)}
+@media (prefers-reduced-motion:no-preference){.game.open .copies{animation:in .15s ease-out}@keyframes in{from{opacity:0;transform:translateY(-4px)}}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Library games<br>in Berlin</h1>
+  <p class="meta" id="updated">Loading…</p>
+</header>
+
+<div class="controls">
+  <div class="controls-in">
+    <div class="switch" role="group" aria-label="Platform">
+      <button data-p="PS5" aria-pressed="false">PS5</button>
+      <button data-p="PS4" aria-pressed="false">PS4</button>
+      <button data-p="Switch 2" aria-pressed="false">Switch 2</button>
+      <button data-p="Switch" aria-pressed="false">Switch</button>
+      <button data-p="ALL" aria-pressed="true">All</button>
+    </div>
+    <div class="row">
+      <input type="search" id="q" placeholder="Search a game" aria-label="Search a game" autocomplete="off">
+      <button class="libs-btn" id="libsBtn">My libraries</button>
+    </div>
+    <label class="toggle"><input type="checkbox" id="freeOnly"> Only games on the shelf now</label>
+  </div>
+</div>
+
+<main>
+  <p class="count" id="count"></p>
+  <ul class="games" id="list"></ul>
+  <div class="empty" id="empty" hidden></div>
+</main>
+
+<dialog id="libs">
+  <div class="sheet-head"><h2>My libraries</h2><button id="libsDone">Done</button></div>
+  <div class="lib-list" id="libList"></div>
+</dialog>
+
+<script>
+const $ = s => document.querySelector(s);
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d }catch{ return d } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)) }catch{} }
+};
+const state = {
+  games: [], platform: store.get("platform","ALL"), q: "",
+  freeOnly: store.get("freeOnly", false), myLibs: new Set(store.get("myLibs", [])), sample: false
+};
+
+const isFree = s => /verfügbar|ausleihbar|im regal|vorhanden|available/i.test(s||"") && !/nicht|entliehen|bestellt|vorgemerkt|unterwegs/i.test(s||"");
+const shortLib = l => (l||"Unknown library").replace(/^[^:]+:\s*/,"");
+
+const SAMPLE = {updated:null, games:[
+]};
+
+function load(data, sample){
+  state.games = data.games || [];
+  state.sample = sample;
+  $("#updated").textContent = sample ? "Showing sample data, not real VÖBB results"
+    : data.updated ? "Updated " + new Date(data.updated).toLocaleString("de-DE",{dateStyle:"medium",timeStyle:"short"})
+    : "Not crawled yet";
+  buildLibList(); render();
+}
+
+function visibleCopies(g){
+  let c = g.copies || [];
+  if (state.myLibs.size) c = c.filter(x => state.myLibs.has(x.library));
+  return c;
+}
+
+function render(){
+  document.querySelectorAll(".switch button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.p===state.platform)));
+  $("#freeOnly").checked = state.freeOnly;
+  $("#libsBtn").textContent = state.myLibs.size ? `My libraries (${state.myLibs.size})` : "My libraries";
+
+  const q = state.q.trim().toLowerCase();
+  const rows = state.games.filter(g => {
+    if (state.platform!=="ALL" && g.platform!==state.platform) return false;
+    if (q && !g.title.toLowerCase().includes(q)) return false;
+    const c = visibleCopies(g);
+    if (state.myLibs.size && !c.length) return false;
+    if (state.freeOnly && !c.some(x => isFree(x.status))) return false;
+    return true;
+  });
+
+  const list = $("#list"); list.textContent = "";
+  const empty = $("#empty");
+
+  if (!state.games.length){
+    $("#count").textContent = "";
+    empty.hidden = false;
+    empty.innerHTML = `<h2>No games yet</h2>
+      <p>The crawler hasn't filled this list yet.</p>
+      <ol><li>Open your repo on GitHub, then Actions.</li><li>Pick "Crawl VÖBB games" and tap Run workflow.</li><li>Come back in about an hour.</li></ol>`;
+    return;
+  }
+  empty.hidden = rows.length > 0;
+  if (!rows.length){ empty.innerHTML = `<h2>Nothing matches</h2><p>Try another search, switch platform, or turn off "Only games on the shelf now".</p>`; }
+
+  $("#count").textContent = `${rows.length} ${rows.length===1?"game":"games"}`;
+
+  for (const g of rows){
+    const c = visibleCopies(g);
+    const free = c.filter(x => isFree(x.status));
+    const li = document.createElement("li"); li.className = "game";
+    const btn = document.createElement("button"); btn.setAttribute("aria-expanded","false");
+    const t = document.createElement("span"); t.className="title"; t.textContent = g.title.replace(/\s*\[.*?\]\s*/g," ").trim();
+    const p = document.createElement("span"); p.className="plat"; p.textContent = g.platform;
+    const a = document.createElement("span"); a.className="avail";
+    if (!c.length) a.textContent = "No copy info";
+    else if (free.length) a.innerHTML = `<b>${free.length} on the shelf</b> out of ${c.length} ${c.length===1?"copy":"copies"}`;
+    else a.textContent = `All ${c.length} ${c.length===1?"copy is":"copies are"} out`;
+    btn.append(t,p,a);
+
+    const ul = document.createElement("ul"); ul.className="copies";
+    for (const x of [...c].sort((a,b)=>isFree(b.status)-isFree(a.status))){
+      const r = document.createElement("li");
+      const d = document.createElement("span"); d.className = "dot" + (isFree(x.status)?" free":"");
+      const info = document.createElement("div");
+      const n = document.createElement("div"); n.textContent = shortLib(x.library);
+      const s = document.createElement("div"); s.className="small"; s.textContent = [x.status, x.shelf].filter(Boolean).join(", ");
+      info.append(n,s); r.append(d,info); ul.append(r);
+    }
+    if (g.url){ const r = document.createElement("li"); r.style.gridTemplateColumns="1fr";
+      const a2 = document.createElement("a"); a2.href = g.url; a2.target = "_blank"; a2.rel = "noopener";
+      a2.textContent = "Open in VÖBB to reserve"; a2.style.color = "inherit"; a2.style.fontWeight = "600";
+      r.append(a2); ul.append(r); }
+    btn.onclick = () => { const o = li.classList.toggle("open"); btn.setAttribute("aria-expanded", String(o)); };
+    li.append(btn, ul); list.append(li);
+  }
+}
+
+function buildLibList(){
+  const libs = [...new Set(state.games.flatMap(g => (g.copies||[]).map(c => c.library)).filter(Boolean))].sort();
+  const box = $("#libList"); box.textContent = "";
+  if (!libs.length){ box.textContent = "Libraries show up here once games are loaded."; return; }
+  for (const l of libs){
+    const lab = document.createElement("label");
+    const cb = document.createElement("input"); cb.type="checkbox"; cb.checked = state.myLibs.has(l);
+    cb.onchange = () => { cb.checked ? state.myLibs.add(l) : state.myLibs.delete(l); store.set("myLibs",[...state.myLibs]); render(); };
+    const txt = document.createElement("span"); txt.textContent = l.replace(":", " ·");
+    lab.append(cb, txt); box.append(lab);
+  }
+}
+
+document.querySelectorAll(".switch button").forEach(b => b.onclick = () => { state.platform=b.dataset.p; store.set("platform",state.platform); render(); });
+$("#q").oninput = e => { state.q = e.target.value; render(); };
+$("#freeOnly").onchange = e => { state.freeOnly = e.target.checked; store.set("freeOnly",state.freeOnly); render(); };
+$("#libsBtn").onclick = () => $("#libs").showModal();
+$("#libsDone").onclick = () => $("#libs").close();
+
+fetch("games.json", {cache:"no-store"})
+  .then(r => r.ok ? r.json() : Promise.reject())
+  .then(d => load(d, false))
+  .catch(() => load({updated:null,games:[]}, false));
+</script>
+</body>
+</html>
