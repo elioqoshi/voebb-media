@@ -23,6 +23,29 @@ def post(S, h, extra):
     d = dict(re.findall(r'<input type="hidden" name="([^"]+)" value="([^"]*)"', h)); d.update(extra)
     return S.post(B + act, data=d, timeout=60).text
 
+# aDISWeb keeps all state in a server-side session, and VÖBB only has room for so many at once.
+# Every page we open by URL starts a new one, and an unused session lingers for ~9 minutes.
+# Left open, they fill the pool and VÖBB answers "Ihre Sitzung wurde beendet" to everyone,
+# so we end each session ("Sitzung beenden") as soon as we have read what we came for.
+def is_record(h): return "Exemplarangaben" in h or "Besitzende Bibliotheken" in h
+def refused(h): return "Sitzung wurde beendet" in h or not re.search(r'<form action="', h)
+
+def open_page(url, ok=lambda h: not refused(h)):
+    """GET url in a fresh session, waiting while VÖBB has no free sessions. Returns (session, html)."""
+    for wait in (0, 5, 10, 20, 40, 60, 120, 180):
+        time.sleep(wait)
+        S = requests.Session(); S.headers["User-Agent"] = UA
+        try:
+            h = S.get(url, timeout=45).text
+            if ok(h): return S, h
+        except requests.RequestException: pass
+    return None, ""
+
+def end_session(S, h):
+    if S and h and not refused(h):
+        try: post(S, h, {"scriptEnabled": "true", "$Tab": "0", "selected": "*SE"})
+        except requests.RequestException: pass
+
 def hits(h):
     out = []
     for li in re.findall(r'<li class="rList_li.*?</li>', h, re.S):
@@ -32,8 +55,9 @@ def hits(h):
     return out
 
 def search(term, sort):
-    S = requests.Session(); S.headers["User-Agent"] = UA
-    h = post(S, S.get(START, timeout=30).text, {"$Autosuggest": term, "$Select": "Bibliotheksbestand", "$Button": "Suchen"})
+    S, h = open_page(START)
+    if not S: sys.exit("VÖBB refused new sessions for over 7 minutes")
+    h = post(S, h, {"$Autosuggest": term, "$Select": "Bibliotheksbestand", "$Button": "Suchen"})
     if sort:
         m = re.search(r'value="%s" id="[^"]+" name="([^"]+)"' % sort, h)
         if m: h = post(S, h, {m.group(1): sort})
@@ -46,6 +70,7 @@ def search(term, sort):
         nxt = post(S, h, {"$Toolbar_3.x": "5", "$Toolbar_3.y": "5"})
         if not hits(nxt) or hits(nxt)[0][0] == page[0][0]: break
         h = nxt
+    end_session(S, h)
     log(f"'{term}' ({sort or 'default'}): {len(found)} hits")
     return found
 
@@ -61,17 +86,9 @@ def platform(title, fallback):
 HARDWARE = re.compile(r"^(\[?nintendo switch( 2| lite| oled)?\b(?!.*(spiel|game|sports|party))|playstation\s*[45]\b(?!.*(spiel|game))"
                       r"|konsolenspiele für)|controller|headset|ladestation|\binlay\b|joy-?con|lenkr|racing wheel|beingurt|\bamiibo\b|tasche|case\b", re.I)
 
-local = threading.local()
 def copies(sak):
-    if not hasattr(local, "S"):
-        local.S = requests.Session(); local.S.headers["User-Agent"] = UA
-    h = ""
-    for _ in range(4):
-        try:
-            h = local.S.get(f"{START}&sp={sak}", timeout=45).text
-            if "Exemplarangaben" in h or "Besitzende Bibliotheken" in h: break
-        except requests.RequestException: pass
-        time.sleep(5)
+    S, h = open_page(f"{START}&sp={sak}", ok=is_record)
+    end_session(S, h)
     i = h.find("Exemplarangaben"); tb = h[i:h.find("</table>", i)] if i > 0 else ""
     out = []
     for tr in re.findall(r'<tr class="[^"]*rTable_tr[^"]*"[^>]*>(.*?)</tr>', tb, re.S):
@@ -89,11 +106,14 @@ def main(out):
                 p = platform(title, fb)
                 if p: recs[sak] = {"id": sak, "raw": title, "platform": p}
     log(f"{len(recs)} game records, fetching copies…")
-    n = [0]
+    n, lock = [0, 0], threading.Lock()
     def job(r):
-        r["copies"] = copies(r["id"]); time.sleep(0.3); n[0] += 1
-        if n[0] % 200 == 0: log(f"  {n[0]}/{len(recs)}")
+        r["copies"] = copies(r["id"]); time.sleep(0.3)
+        with lock:
+            n[0] += 1; n[1] += not r["copies"]
+            if n[0] % 200 == 0: log(f"  {n[0]}/{len(recs)}, {n[1]} without copies")
     with ThreadPoolExecutor(WORKERS) as ex: list(ex.map(job, recs.values()))
+    log(f"{n[1]} records came back without copies")
     merged = {}
     for r in recs.values():
         title = re.sub(r"\s*[;:.,]?\s*\[[^\]]*\]", "", r["raw"]).strip(" ;:.,-") or r["raw"]

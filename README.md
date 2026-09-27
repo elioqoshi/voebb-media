@@ -7,4 +7,5 @@ with every copy and whether it's on the shelf.
 - `.github/workflows/crawl.yml` runs it every night and on the "Run workflow" button.
 - `index.html` is the page. GitHub Pages serves it together with `games.json`.
 
-A full run takes about 60 to 90 minutes because the crawler waits between requests.
+A full run takes about 2 hours: VÖBB has to open every game record separately, and it only has room for
+a few sessions at a time, so the crawler uses two workers and ends each session right after reading it.
