@@ -17,12 +17,26 @@
   --display:"Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
   --body:system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --side:280px;
+  /* Status colours: a tinted background with a readable foreground, plus a solid tone for dots and meters */
+  --success:#1F8A4C; --success-bg:#E2F3E9; --success-fg:#15653A;
+  --warning:#D08A00; --warning-bg:#FDF0D5; --warning-fg:#7A4F00;
+  --danger:#C8363C;  --danger-bg:#FBE3E4;  --danger-fg:#9E2328;
+  --info:#2F6FD6;    --info-bg:#E3ECFB;    --info-fg:#1D4E9E;
+  --neutral:#9AA1AE; --neutral-bg:#E6E9EF; --neutral-fg:#4A5366;
+  /* Platform families */
+  --ps-bg:#DDE8FA; --ps-fg:#0B4DA8; --ns-bg:#FCE1E3; --ns-fg:#AD0F1C;
   box-sizing:border-box;
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
     --paper:#0E1628; --card:#16213A; --ink:#E8ECF3; --soft:#9AA3B6; --line:#26324D;
     --free:#43C07A; --busy:#5B6478;
+    --success:#43C07A; --success-bg:#153A27; --success-fg:#86DEAA;
+    --warning:#E3A83A; --warning-bg:#3B2D10; --warning-fg:#F5C76E;
+    --danger:#E0626A;  --danger-bg:#401D23;  --danger-fg:#F5A5AA;
+    --info:#6B9BEF;    --info-bg:#182A4B;    --info-fg:#A3C0F6;
+    --neutral:#5B6478; --neutral-bg:#222E47; --neutral-fg:#AEB6C8;
+    --ps-bg:#172B50; --ps-fg:#92B8F7; --ns-bg:#44191F; --ns-fg:#F7A3A9;
   }
 }
 *,*::before,*::after{box-sizing:inherit}
@@ -73,21 +87,67 @@ h1{font:800 clamp(34px,6vw,52px)/.95 var(--display);letter-spacing:-.02em;margin
 .count{color:var(--soft);font-size:14px;margin:0}
 .open-filters{display:none;border:2px solid var(--ink);background:var(--yellow);color:var(--on-yellow);border-radius:10px;padding:8px 14px;font-weight:600;cursor:pointer}
 
-ul.games{list-style:none;margin:0;padding:0}
+/* Tags name what a thing is (platform). Badges say what state it is in. */
+.tag{display:inline-flex;align-items:center;font:700 12px/1 var(--body);letter-spacing:.02em;padding:4px 7px;border-radius:6px;white-space:nowrap}
+.tag.ps{background:var(--ps-bg);color:var(--ps-fg)}
+.tag.ns{background:var(--ns-bg);color:var(--ns-fg)}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;line-height:1;padding:4px 9px 4px 8px;border-radius:999px;white-space:nowrap}
+.badge::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;flex:none}
+.badge.success{background:var(--success-bg);color:var(--success-fg)}
+.badge.warning{background:var(--warning-bg);color:var(--warning-fg)}
+.badge.danger{background:var(--danger-bg);color:var(--danger-fg)}
+.badge.info{background:var(--info-bg);color:var(--info-fg)}
+.badge.neutral{background:var(--neutral-bg);color:var(--neutral-fg)}
+
+/* Active filter chips */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+.chips:empty{display:none}
+.chip{display:inline-flex;align-items:center;gap:2px;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:3px 3px 3px 11px;font-size:13px}
+.chip button{border:0;background:none;width:24px;height:24px;border-radius:50%;cursor:pointer;color:var(--soft);font-size:16px;line-height:1}
+.chip button:hover{background:var(--neutral-bg);color:var(--ink)}
+.chips .clear{border:0;background:none;padding:4px 6px;font-size:13px;color:var(--soft);text-decoration:underline;cursor:pointer}
+
+/* Game list */
+ul.games{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
 .game{border-bottom:1px solid var(--line)}
-.game > button{all:unset;display:grid;grid-template-columns:1fr auto;gap:4px 12px;width:100%;padding:14px 0;cursor:pointer}
-.game > button:focus-visible{outline:3px solid var(--yellow)}
-.title{font-weight:600;font-size:17px}
-.plat{font:800 13px/1 var(--display);border:1.5px solid currentColor;border-radius:6px;padding:4px 6px;align-self:start}
-.avail{grid-column:1/-1;font-size:14px;color:var(--soft)}
-.avail b{color:var(--free);font-weight:600}
-.copies{list-style:none;margin:0 0 14px;padding:0;display:none}
-.game.open .copies{display:block}
-.copies li{display:grid;grid-template-columns:12px 1fr;gap:10px;padding:6px 0;font-size:15px}
-.dot{width:10px;height:10px;border-radius:50%;background:var(--busy);margin-top:6px}
-.dot.free{background:var(--free)}
-.small{color:var(--soft);font-size:13px}
-.dist{color:var(--soft)}
+.row{all:unset;box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:6px 20px;width:100%;padding:14px 4px;cursor:pointer}
+.row:hover{background:color-mix(in srgb,var(--card) 55%,transparent)}
+.row:focus-visible{outline:3px solid var(--yellow);outline-offset:-3px;border-radius:6px}
+.title{display:block;font-weight:650;font-size:17px;line-height:1.3}
+.facts{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin-top:7px}
+.sub{color:var(--soft);font-size:13px}
+.meter{display:flex;gap:2px;width:112px;height:6px}
+.meter i{display:block;border-radius:3px;min-width:4px}
+.meter .m-shelf{background:var(--success)}
+.meter .m-out{background:var(--warning)}
+.meter .m-gone{background:var(--neutral);opacity:.6}
+.row .chev{margin:0 6px 0 0}
+.row[aria-expanded="true"] .chev{transform:rotate(45deg)}
+
+/* Copies inside an open game */
+.detail{padding:4px 4px 18px}
+.cgroup + .cgroup{margin-top:14px}
+.cgroup h3{display:flex;align-items:center;gap:8px;margin:0 0 4px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--soft)}
+.cgroup h3 .n{font-weight:600;background:var(--neutral-bg);color:var(--neutral-fg);border-radius:999px;padding:2px 7px;letter-spacing:0}
+.clist{list-style:none;margin:0;padding:0;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.crow{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) 11rem;align-items:center;gap:4px 16px;padding:10px 14px}
+.crow > .badge{justify-self:end}
+.crow + .crow{border-top:1px solid var(--line)}
+.lname{font-weight:600;font-size:15px}
+.ldist,.cshelf{color:var(--soft);font-size:13px}
+.cnote{grid-column:1/-1;font-size:13px;color:var(--soft);display:flex;gap:6px}
+.cnote::before{content:"Note";font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--warning-fg);background:var(--warning-bg);border-radius:4px;padding:2px 5px;align-self:start}
+.cgroup.muted .crow{opacity:.75}
+.reserve{display:inline-flex;align-items:center;gap:6px;margin-top:14px;border:1.5px solid var(--ink);border-radius:10px;padding:8px 14px;font-weight:600;font-size:14px;color:inherit;text-decoration:none}
+.reserve:hover{background:var(--yellow);color:var(--on-yellow);border-color:var(--yellow)}
+
+@media (max-width:560px){
+  .row{grid-template-columns:minmax(0,1fr) auto;padding:14px 0}
+  .meter{display:none}
+  .detail{padding:4px 0 18px}
+  .crow{grid-template-columns:minmax(0,1fr);gap:6px}
+  .crow > .badge{grid-row:2;justify-self:start}
+}
 
 .empty{padding:32px 0;color:var(--soft)}
 .empty h2{font:800 24px/1.1 var(--display);color:var(--ink);margin:0 0 8px}
@@ -112,7 +172,8 @@ ul.games{list-style:none;margin:0;padding:0}
 }
 @media (prefers-reduced-motion:no-preference){
   .filters{transition:transform .2s ease-out,visibility .2s}
-  .game.open .copies{animation:in .15s ease-out}@keyframes in{from{opacity:0;transform:translateY(-4px)}}
+  .detail{animation:in .15s ease-out}@keyframes in{from{opacity:0;transform:translateY(-4px)}}
+  .chev{transition:transform .15s}
 }
 </style>
 </head>
@@ -160,6 +221,7 @@ ul.games{list-style:none;margin:0;padding:0}
       <p class="count" id="count" aria-live="polite"></p>
       <button class="open-filters" id="openFilters" aria-controls="filters" aria-expanded="false">Filters &amp; sort</button>
     </div>
+    <div class="chips" id="chips" aria-label="Active filters"></div>
     <ul class="games" id="list"></ul>
     <div class="empty" id="empty" hidden></div>
   </main>
@@ -186,7 +248,47 @@ function save(){
 }
 const isDefault = () => !state.q.trim() && state.sort === "az" && !state.freeOnly && !state.offPlat.size && !state.offLib.size;
 
-const isFree = s => /verfügbar|ausleihbar|im regal|vorhanden|available/i.test(s||"") && !/nicht|entliehen|bestellt|vorgemerkt|unterwegs/i.test(s||"");
+// VÖBB statuses look like "Ausgeliehen - Fällig am: 20.10.2026 - Hülle beschädigt":
+// a base status, a due date for loans, then an optional staff note about the copy's condition.
+const TODAY = new Date(); TODAY.setHours(0, 0, 0, 0);
+const fmtDay = d => d.toLocaleDateString("en-GB", {day: "numeric", month: "short"});
+const statusCache = new Map();
+function copyStatus(raw){
+  if (statusCache.has(raw)) return statusCache.get(raw);
+  const parts = (raw || "").split(/\s+-\s+/);
+  const base = parts.shift() || "";
+  let kind, tone, label, due = null;
+  if (/^verfügbar/i.test(base)){
+    kind = "shelf"; tone = "success"; label = /zurückverbucht/i.test(base) ? "Just returned" : "On shelf";
+  } else if (/^ausgeliehen/i.test(base)){
+    const m = (parts[0] || "").match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+    if (m){ parts.shift(); due = new Date(+m[3], m[2] - 1, +m[1]); }
+    kind = "out";
+    if (due && due < TODAY){ tone = "danger"; label = `Overdue since ${fmtDay(due)}`; }
+    else { tone = "warning"; label = due ? `On loan · due ${fmtDay(due)}` : "On loan"; }
+  } else if (/^reserviert/i.test(base)){
+    kind = "out"; tone = "info"; label = "Reserved";
+  } else if (/^nicht im regal/i.test(base)){
+    kind = "gone"; tone = "neutral"; label = "Not on shelf";
+  } else if (/verloren/i.test(base)){
+    kind = "gone"; tone = "neutral"; label = "Lost";
+  } else if (/vermisst/i.test(base)){
+    kind = "gone"; tone = "neutral"; label = "Missing";
+  } else {
+    kind = "gone"; tone = "neutral"; label = base || "Unknown";
+  }
+  const s = {kind, tone, label, due, note: parts.join(" – ")};
+  statusCache.set(raw, s);
+  return s;
+}
+const isFree = raw => copyStatus(raw).kind === "shelf";
+const lostOrMissing = raw => /verloren|vermisst/i.test(raw || "");
+
+const platFamily = p => /^ps/i.test(p) ? "ps" : /switch/i.test(p) ? "ns" : "";
+function tagEl(p){ const t = document.createElement("span"); t.className = "tag " + platFamily(p); t.textContent = p; return t; }
+function badgeEl(tone, text){ const b = document.createElement("span"); b.className = "badge " + tone; b.textContent = text; return b; }
+const cleanTitle = t => t.replace(/\s*\[.*?\]\s*/g, " ").replace(/^["'„“]+|["'“”]+$/g, "").trim();
+const plural = (n, one, many) => `${n.toLocaleString("en")} ${n === 1 ? one : many}`;
 
 // VÖBB names libraries "District: Name". A few come without a district.
 const NO_DISTRICT = {"Bodo-Uhse-Bibliothek": "Lichtenberg", "Stadtteilbibliothek Hakenfelde": "Spandau"};
@@ -228,9 +330,125 @@ function matches(g){
 const SORTS = {
   az: (a, b) => a.g.title.localeCompare(b.g.title, "de"),
   za: (a, b) => b.g.title.localeCompare(a.g.title, "de"),
-  free: (a, b) => b.free - a.free || b.c.length - a.c.length || SORTS.az(a, b),
-  copies: (a, b) => b.c.length - a.c.length || b.free - a.free || SORTS.az(a, b)
+  free: (a, b) => b.shelf - a.shelf || b.active - a.active || SORTS.az(a, b),
+  copies: (a, b) => b.active - a.active || b.shelf - a.shelf || SORTS.az(a, b)
 };
+
+// Everything a result row needs, worked out from the copies in the ticked libraries.
+function summarise(g){
+  const c = visibleCopies(g);
+  let shelf = 0, out = 0, gone = 0, nextDue = null;
+  const libs = new Set();
+  for (const x of c){
+    const s = copyStatus(x.status);
+    if (s.kind === "shelf") shelf++;
+    else if (s.kind === "out"){ out++; if (s.due && s.due >= TODAY && (!nextDue || s.due < nextDue)) nextDue = s.due; }
+    else gone++;
+    if (!lostOrMissing(x.status)) libs.add(x.library);
+  }
+  const active = c.filter(x => !lostOrMissing(x.status)).length;
+  return {g, c, shelf, out, gone, active, libs: libs.size, nextDue};
+}
+
+function renderChips(){
+  const box = $("#chips"); box.textContent = "";
+  const chips = [];
+  if (state.q.trim()) chips.push([`Search: “${state.q.trim()}”`, () => { state.q = ""; }]);
+  if (state.freeOnly) chips.push(["On the shelf now", () => { state.freeOnly = false; }]);
+  if (state.offPlat.size){
+    const on = [...platChecks.keys()].filter(p => !state.offPlat.has(p));
+    chips.push([`Platform: ${on.length ? on.join(", ") : "none"}`, () => state.offPlat.clear()]);
+  }
+  if (state.offLib.size){
+    const on = state.libs.filter(l => !state.offLib.has(l));
+    const districts = new Set(on.map(l => lib(l).district));
+    const whole = districts.size === 1 && districtChecks.some(d => d.libs.length === on.length && d.libs.every(l => on.includes(l)));
+    chips.push([`Libraries: ${whole ? [...districts][0] : `${on.length} of ${state.libs.length}`}`, () => state.offLib.clear()]);
+  }
+  for (const [text, clear] of chips){
+    const chip = document.createElement("span"); chip.className = "chip"; chip.append(text);
+    const x = document.createElement("button"); x.textContent = "×"; x.setAttribute("aria-label", `Remove filter ${text}`);
+    x.onclick = () => { clear(); saveAndRender(); };
+    chip.append(x); box.append(chip);
+  }
+  if (chips.length > 1){
+    const all = document.createElement("button"); all.className = "clear"; all.textContent = "Clear all"; all.onclick = resetFilters;
+    box.append(all);
+  }
+}
+
+function buildRow({g, c, shelf, out, gone, active, libs, nextDue}){
+  const li = document.createElement("li"); li.className = "game";
+  const btn = document.createElement("button"); btn.className = "row"; btn.setAttribute("aria-expanded", "false");
+
+  const main = document.createElement("span");
+  const t = document.createElement("span"); t.className = "title"; t.textContent = cleanTitle(g.title);
+  const facts = document.createElement("span"); facts.className = "facts";
+  facts.append(tagEl(g.platform));
+  const sub = document.createElement("span"); sub.className = "sub";
+  if (!c.length){ facts.append(badgeEl("neutral", "No copy info")); }
+  else if (shelf){ facts.append(badgeEl("success", `${shelf} on shelf`)); sub.textContent = `${plural(active, "copy", "copies")} in ${plural(libs, "library", "libraries")}`; }
+  else if (out){ facts.append(badgeEl("warning", "All on loan")); sub.textContent = nextDue ? `Next due back ${fmtDay(nextDue)}` : "All overdue"; }
+  else { facts.append(badgeEl("neutral", "Unavailable")); sub.textContent = active ? "Not on the shelf right now" : "All copies lost or missing"; }
+  if (sub.textContent) facts.append(sub);
+  main.append(t, facts);
+
+  // A small stacked bar: on shelf / on loan / unavailable. The badge already says it in words.
+  const meter = document.createElement("span"); meter.className = "meter"; meter.setAttribute("aria-hidden", "true");
+  for (const [n, cls] of [[shelf, "m-shelf"], [out, "m-out"], [gone, "m-gone"]]){
+    if (!n) continue;
+    const i = document.createElement("i"); i.className = cls; i.style.flex = n; meter.append(i);
+  }
+  const chev = document.createElement("span"); chev.className = "chev"; chev.setAttribute("aria-hidden", "true");
+  btn.append(main, meter, chev);
+
+  let detail = null;
+  btn.onclick = () => {
+    if (!detail){ detail = buildDetail(g, c); li.append(detail); }
+    const open = btn.getAttribute("aria-expanded") !== "true";
+    btn.setAttribute("aria-expanded", String(open)); detail.hidden = !open;
+  };
+  li.append(btn);
+  return li;
+}
+
+const byPlace = (x, y) => lib(x.library).district.localeCompare(lib(y.library).district, "de")
+  || lib(x.library).name.localeCompare(lib(y.library).name, "de");
+
+function buildDetail(g, c){
+  const detail = document.createElement("div"); detail.className = "detail";
+  const groups = [
+    ["On the shelf", "shelf", byPlace],
+    ["On loan", "out", (x, y) => (copyStatus(x.status).due || 0) - (copyStatus(y.status).due || 0) || byPlace(x, y)],
+    ["Unavailable", "gone", byPlace]
+  ];
+  for (const [title, kind, order] of groups){
+    const items = c.filter(x => copyStatus(x.status).kind === kind).sort(order);
+    if (!items.length) continue;
+    const sec = document.createElement("section"); sec.className = "cgroup" + (kind === "gone" ? " muted" : "");
+    const h = document.createElement("h3"); h.textContent = title;
+    const n = document.createElement("span"); n.className = "n"; n.textContent = items.length; h.append(n);
+    const ul = document.createElement("ul"); ul.className = "clist";
+    for (const x of items){
+      const info = lib(x.library), s = copyStatus(x.status);
+      const r = document.createElement("li"); r.className = "crow";
+      const place = document.createElement("div");
+      const nm = document.createElement("div"); nm.className = "lname"; nm.textContent = info.name + (info.closed ? " (closed)" : "");
+      const ds = document.createElement("div"); ds.className = "ldist"; ds.textContent = info.district;
+      place.append(nm, ds);
+      const shelfEl = document.createElement("div"); shelfEl.className = "cshelf"; shelfEl.textContent = x.shelf || "";
+      r.append(place, shelfEl, badgeEl(s.tone, s.label));
+      if (s.note){ const note = document.createElement("div"); note.className = "cnote"; note.textContent = s.note; r.append(note); }
+      ul.append(r);
+    }
+    sec.append(h, ul); detail.append(sec);
+  }
+  if (g.url){
+    const a = document.createElement("a"); a.className = "reserve"; a.href = g.url; a.target = "_blank"; a.rel = "noopener";
+    a.textContent = "Reserve in VÖBB ↗"; detail.append(a);
+  }
+  return detail;
+}
 
 function render(){
   $("#freeOnly").checked = state.freeOnly;
@@ -251,10 +469,8 @@ function render(){
     return;
   }
 
-  const rows = state.games.filter(matches).map(g => {
-    const c = visibleCopies(g);
-    return {g, c, free: c.filter(x => isFree(x.status)).length};
-  }).sort(SORTS[state.sort] || SORTS.az);
+  renderChips();
+  const rows = state.games.filter(matches).map(summarise).sort(SORTS[state.sort] || SORTS.az);
 
   empty.hidden = rows.length > 0;
   if (!rows.length){
@@ -262,44 +478,12 @@ function render(){
       <button class="reset">Reset all filters</button>`;
     empty.querySelector("button").onclick = resetFilters;
   }
-  const label = `${rows.length} ${rows.length===1?"game":"games"}`;
+  const label = plural(rows.length, "game", "games");
   $("#count").textContent = label;
   $("#closeFilters").textContent = `Show ${label}`;
 
   const frag = document.createDocumentFragment();
-  for (const {g, c, free} of rows){
-    const li = document.createElement("li"); li.className = "game";
-    const btn = document.createElement("button"); btn.setAttribute("aria-expanded","false");
-    const t = document.createElement("span"); t.className="title"; t.textContent = g.title.replace(/\s*\[.*?\]\s*/g," ").trim();
-    const p = document.createElement("span"); p.className="plat"; p.textContent = g.platform;
-    const a = document.createElement("span"); a.className="avail";
-    if (!c.length) a.textContent = "No copy info";
-    else if (free) a.innerHTML = `<b>${free} on the shelf</b> out of ${c.length} ${c.length===1?"copy":"copies"}`;
-    else a.textContent = `All ${c.length} ${c.length===1?"copy is":"copies are"} out`;
-    btn.append(t,p,a);
-
-    const ul = document.createElement("ul"); ul.className="copies";
-    const sorted = [...c].sort((x, y) => isFree(y.status) - isFree(x.status)
-      || lib(x.library).district.localeCompare(lib(y.library).district, "de")
-      || lib(x.library).name.localeCompare(lib(y.library).name, "de"));
-    for (const x of sorted){
-      const info = lib(x.library);
-      const r = document.createElement("li");
-      const d = document.createElement("span"); d.className = "dot" + (isFree(x.status)?" free":"");
-      const box = document.createElement("div");
-      const n = document.createElement("div");
-      const dist = document.createElement("span"); dist.className = "dist"; dist.textContent = info.district + " · ";
-      n.append(dist, info.name + (info.closed ? " (closed)" : ""));
-      const s = document.createElement("div"); s.className="small"; s.textContent = [x.status, x.shelf].filter(Boolean).join(", ");
-      box.append(n,s); r.append(d,box); ul.append(r);
-    }
-    if (g.url){ const r = document.createElement("li"); r.style.gridTemplateColumns="1fr";
-      const a2 = document.createElement("a"); a2.href = g.url; a2.target = "_blank"; a2.rel = "noopener";
-      a2.textContent = "Open in VÖBB to reserve"; a2.style.color = "inherit"; a2.style.fontWeight = "600";
-      r.append(a2); ul.append(r); }
-    btn.onclick = () => { const o = li.classList.toggle("open"); btn.setAttribute("aria-expanded", String(o)); };
-    li.append(btn, ul); frag.append(li);
-  }
+  for (const r of rows) frag.append(buildRow(r));
   list.append(frag);
 }
 
@@ -320,7 +504,7 @@ function buildPlatList(){
   for (const g of state.games) counts[g.platform] = (counts[g.platform] || 0) + 1;
   const plats = [...PLATFORMS, ...Object.keys(counts).filter(p => !PLATFORMS.includes(p))];
   for (const p of plats){
-    const {lab, cb} = checkRow(p, counts[p] || 0, on => { setOff(state.offPlat, [p], !on); saveAndRender(); });
+    const {lab, cb} = checkRow(tagEl(p), (counts[p] || 0).toLocaleString("en"), on => { setOff(state.offPlat, [p], !on); saveAndRender(); });
     if (!counts[p]) lab.classList.add("off");
     platChecks.set(p, cb); box.append(lab);
   }
