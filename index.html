@@ -16,7 +16,7 @@
   --yellow:#F2C800; --on-yellow:#14213D; --free:#1F8A4C; --busy:#9AA1AE;
   --display:"Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
   --body:system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --side:300px;
+  --side:320px;
   box-sizing:border-box;
 }
 @media (prefers-color-scheme:dark){
@@ -33,10 +33,14 @@ button,input,select{font:inherit;color:inherit}
 
 .page{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:var(--side) minmax(0,1fr);gap:0 32px;padding:0 16px}
 
-/* Sidebar */
+/* Sidebar. The side padding leaves room for focus rings, which the scroll box would otherwise clip. */
 .filters{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;overscroll-behavior:contain;
-  padding:20px 4px 32px 0;display:grid;gap:22px;align-content:start}
-.filters-head{display:none}
+  margin-left:-8px;padding:20px 10px 32px 8px;display:grid;gap:22px;align-content:start}
+.filters-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.filters-head h2{font:800 22px/1 var(--display);margin:0;margin-right:auto}
+.reset{border:1.5px solid var(--line);background:var(--card);border-radius:10px;padding:7px 12px;font-size:14px;font-weight:600;cursor:pointer}
+.reset:disabled{opacity:.45;cursor:default}
+#closeFilters{display:none}
 .group h2{font:800 15px/1 var(--display);letter-spacing:.02em;text-transform:uppercase;color:var(--soft);margin:0 0 10px}
 .group-top{display:flex;justify-content:space-between;align-items:baseline}
 .group-top h2{margin-bottom:10px}
@@ -50,9 +54,14 @@ select{width:100%;border:1px solid var(--line);background:var(--card);border-rad
 .check.off{color:var(--soft)}
 .plat-list .check input,.shelf input{accent-color:var(--free)}
 
-.district{border-top:1px solid var(--line);padding:6px 0}
-.district > .check{font-weight:700}
-.district .libs{padding-left:28px}
+.district{border-top:1px solid var(--line)}
+.dhead{display:flex;align-items:center;gap:10px}
+.dhead input{width:18px;height:18px;margin:0;flex:none;accent-color:var(--ink);cursor:pointer}
+.dtoggle{flex:1;display:flex;align-items:center;gap:8px;border:0;background:none;padding:9px 0;text-align:left;font-weight:700;font-size:15px;cursor:pointer}
+.dtoggle .n{margin-left:auto;color:var(--soft);font-size:13px;font-weight:400;font-variant-numeric:tabular-nums}
+.chev{width:10px;height:10px;flex:none;border-right:2px solid var(--soft);border-bottom:2px solid var(--soft);transform:rotate(-45deg);margin:0 4px 0 2px}
+.dtoggle[aria-expanded="true"] .chev{transform:rotate(45deg)}
+.district .libs{padding:0 0 8px 28px}
 .district .libs .check{font-size:14px;padding:3px 0}
 .closed{color:var(--soft);font-size:12px}
 
@@ -83,6 +92,7 @@ ul.games{list-style:none;margin:0;padding:0}
 .empty{padding:32px 0;color:var(--soft)}
 .empty h2{font:800 24px/1.1 var(--display);color:var(--ink);margin:0 0 8px}
 .empty ol{padding-left:20px}
+.empty .reset{margin-top:6px}
 
 .scrim{display:none}
 
@@ -90,14 +100,13 @@ ul.games{list-style:none;margin:0;padding:0}
 @media (max-width:860px){
   .page{grid-template-columns:minmax(0,1fr);padding:0 16px}
   .open-filters{display:inline-block}
-  .filters{position:fixed;inset:0 auto 0 0;z-index:20;width:min(88vw,360px);max-height:none;height:100%;
+  .filters{position:fixed;inset:0 auto 0 0;z-index:20;width:min(90vw,380px);max-height:none;height:100%;margin:0;
     background:var(--paper);padding:0 16px calc(24px + env(safe-area-inset-bottom,0px));
     transform:translateX(-105%);visibility:hidden;box-shadow:0 0 40px rgba(0,0,0,.25)}
   .filters.shown{transform:none;visibility:visible}
-  .filters-head{display:flex;position:sticky;top:0;z-index:1;background:var(--paper);justify-content:space-between;align-items:center;
+  .filters-head{position:sticky;top:0;z-index:1;background:var(--paper);
     padding:calc(14px + env(safe-area-inset-top,0px)) 0 12px;border-bottom:1px solid var(--line)}
-  .filters-head h2{font:800 22px/1 var(--display);margin:0}
-  .filters-head button{border:0;background:var(--yellow);color:var(--on-yellow);border-radius:10px;padding:8px 14px;font-weight:600;cursor:pointer}
+  #closeFilters{display:block;border:0;background:var(--yellow);color:var(--on-yellow);border-radius:10px;padding:8px 10px;font-size:14px;font-weight:600;white-space:nowrap;cursor:pointer}
   .scrim.shown{display:block;position:fixed;inset:0;z-index:15;background:rgba(10,15,30,.5)}
 }
 @media (prefers-reduced-motion:no-preference){
@@ -109,7 +118,7 @@ ul.games{list-style:none;margin:0;padding:0}
 <body>
 <div class="page">
   <aside class="filters" id="filters" aria-label="Filters and sorting">
-    <div class="filters-head"><h2>Filters</h2><button id="closeFilters">Show games</button></div>
+    <div class="filters-head"><h2>Filters</h2><button class="reset" id="reset">Reset</button><button id="closeFilters">Show games</button></div>
 
     <div class="group">
       <h2><label for="q">Search</label></h2>
@@ -163,13 +172,18 @@ const store = {
 };
 const PLATFORMS = ["PS5", "PS4", "Switch 2", "Switch"];
 // Everything is on by default, so we remember what the viewer switched off.
+const saved = store.get("filters", {});
 const state = {
-  games: [], q: "", sort: store.get("sort", "az"),
-  freeOnly: store.get("freeOnly", false),
-  offPlat: new Set(store.get("offPlatforms", [])),
-  offLib: new Set(store.get("offLibraries", [])),
-  libs: []
+  games: [], libs: [],
+  q: saved.q || "", sort: saved.sort || "az", freeOnly: !!saved.freeOnly,
+  offPlat: new Set(saved.offPlat || []), offLib: new Set(saved.offLib || []),
+  openDistricts: new Set(saved.openDistricts || [])
 };
+function save(){
+  store.set("filters", {q: state.q, sort: state.sort, freeOnly: state.freeOnly,
+    offPlat: [...state.offPlat], offLib: [...state.offLib], openDistricts: [...state.openDistricts]});
+}
+const isDefault = () => !state.q.trim() && state.sort === "az" && !state.freeOnly && !state.offPlat.size && !state.offLib.size;
 
 const isFree = s => /verfügbar|ausleihbar|im regal|vorhanden|available/i.test(s||"") && !/nicht|entliehen|bestellt|vorgemerkt|unterwegs/i.test(s||"");
 
@@ -220,6 +234,8 @@ const SORTS = {
 function render(){
   $("#freeOnly").checked = state.freeOnly;
   $("#sort").value = state.sort;
+  if ($("#q").value !== state.q) $("#q").value = state.q;
+  $("#reset").disabled = isDefault();
   syncChecks();
 
   const list = $("#list"); list.textContent = "";
@@ -240,7 +256,11 @@ function render(){
   }).sort(SORTS[state.sort] || SORTS.az);
 
   empty.hidden = rows.length > 0;
-  if (!rows.length) empty.innerHTML = `<h2>Nothing matches</h2><p>Try another search, tick more platforms or libraries, or turn off "Only games on the shelf now".</p>`;
+  if (!rows.length){
+    empty.innerHTML = `<h2>Nothing matches</h2><p>Try another search, tick more platforms or libraries, or turn off "Only games on the shelf now".</p>
+      <button class="reset">Reset all filters</button>`;
+    empty.querySelector("button").onclick = resetFilters;
+  }
   const label = `${rows.length} ${rows.length===1?"game":"games"}`;
   $("#count").textContent = label;
   $("#closeFilters").textContent = `Show ${label}`;
@@ -320,9 +340,21 @@ function buildLibList(){
   for (const d of districts){
     const libs = byDistrict.get(d).sort((a, b) => lib(a).name.localeCompare(lib(b).name, "de"));
     const wrap = document.createElement("div"); wrap.className = "district";
-    const head = checkRow(d, null, on => { setOff(state.offLib, libs, !on); saveAndRender(); });
-    districtChecks.push({cb: head.cb, libs});
-    const inner = document.createElement("div"); inner.className = "libs";
+    const id = "d-" + districtChecks.length;
+    const head = document.createElement("div"); head.className = "dhead";
+    const cb = document.createElement("input"); cb.type = "checkbox"; cb.setAttribute("aria-label", `All libraries in ${d}`);
+    cb.onchange = () => { setOff(state.offLib, libs, !cb.checked); saveAndRender(); };
+    const tog = document.createElement("button"); tog.className = "dtoggle"; tog.setAttribute("aria-controls", id);
+    const name = document.createElement("span"); name.textContent = d;
+    const n = document.createElement("span"); n.className = "n";
+    const chev = document.createElement("span"); chev.className = "chev"; chev.setAttribute("aria-hidden", "true");
+    tog.append(name, n, chev);
+    const inner = document.createElement("div"); inner.className = "libs"; inner.id = id;
+    const setOpen = open => { tog.setAttribute("aria-expanded", String(open)); inner.hidden = !open; };
+    setOpen(state.openDistricts.has(d));
+    tog.onclick = () => { const open = inner.hidden; setOpen(open); setOff(state.openDistricts, [d], open); save(); };
+    head.append(cb, tog);
+    districtChecks.push({cb, n, libs});
     for (const raw of libs){
       const info = lib(raw);
       const text = document.createDocumentFragment(); text.append(info.name);
@@ -330,23 +362,25 @@ function buildLibList(){
       const {lab, cb} = checkRow(text, null, on => { setOff(state.offLib, [raw], !on); saveAndRender(); });
       libChecks.set(raw, cb); inner.append(lab);
     }
-    wrap.append(head.lab, inner); box.append(wrap);
+    wrap.append(head, inner); box.append(wrap);
   }
 }
 
 function syncChecks(){
   for (const [p, cb] of platChecks) cb.checked = !state.offPlat.has(p);
   for (const [raw, cb] of libChecks) cb.checked = !state.offLib.has(raw);
-  for (const {cb, libs} of districtChecks){
+  for (const {cb, n, libs} of districtChecks){
     const off = libs.filter(l => state.offLib.has(l)).length;
     cb.checked = off === 0; cb.indeterminate = off > 0 && off < libs.length;
+    n.textContent = `${libs.length - off}/${libs.length}`;
   }
 }
 
 function setOff(set, keys, off){ for (const k of keys) off ? set.add(k) : set.delete(k); }
-function saveAndRender(){
-  store.set("offPlatforms", [...state.offPlat]); store.set("offLibraries", [...state.offLib]);
-  render();
+function saveAndRender(){ save(); render(); }
+function resetFilters(){
+  state.q = ""; state.sort = "az"; state.freeOnly = false; state.offPlat.clear(); state.offLib.clear();
+  saveAndRender();
 }
 
 document.querySelectorAll("[data-all],[data-none]").forEach(b => b.onclick = () => {
@@ -355,9 +389,10 @@ document.querySelectorAll("[data-all],[data-none]").forEach(b => b.onclick = () 
   const keys = plat ? [...platChecks.keys()] : state.libs;
   setOff(set, keys, "none" in b.dataset); saveAndRender();
 });
-$("#q").oninput = e => { state.q = e.target.value; render(); };
-$("#sort").onchange = e => { state.sort = e.target.value; store.set("sort", state.sort); render(); };
-$("#freeOnly").onchange = e => { state.freeOnly = e.target.checked; store.set("freeOnly", state.freeOnly); render(); };
+$("#q").oninput = e => { state.q = e.target.value; saveAndRender(); };
+$("#sort").onchange = e => { state.sort = e.target.value; saveAndRender(); };
+$("#freeOnly").onchange = e => { state.freeOnly = e.target.checked; saveAndRender(); };
+$("#reset").onclick = resetFilters;
 
 function showFilters(open){
   $("#filters").classList.toggle("shown", open); $("#scrim").classList.toggle("shown", open);
