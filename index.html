@@ -57,6 +57,7 @@ select{width:100%;border:1px solid var(--line);background:var(--card);border-rad
 .check input{width:18px;height:18px;margin:0;flex:none;accent-color:var(--ink)}
 .check .n{margin-left:auto;color:var(--soft);font-size:13px;font-variant-numeric:tabular-nums}
 .check.off{color:var(--soft)}
+.hint{margin:-3px 0 0 28px;color:var(--soft);font-size:13px}
 .plat-list .check input,.shelf input{accent-color:var(--free)}
 
 .district{border-top:1px solid var(--line)}
@@ -186,6 +187,8 @@ ul.games{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
     <div class="group">
       <h2>Availability</h2>
       <label class="check shelf"><input type="checkbox" id="freeOnly"> Only games on the shelf now</label>
+      <label class="check"><input type="checkbox" id="showGone"> Show unavailable copies</label>
+      <p class="hint">Lost, missing or not on the shelf</p>
     </div>
 
     <fieldset class="group" style="border:0;margin:0;padding:0">
@@ -224,15 +227,15 @@ const PLATFORMS = ["PS5", "PS4", "Switch 2", "Switch"];
 const saved = store.get("filters", {});
 const state = {
   games: [], libs: [],
-  q: saved.q || "", sort: saved.sort || "az", freeOnly: !!saved.freeOnly,
+  q: saved.q || "", sort: saved.sort || "az", freeOnly: !!saved.freeOnly, showGone: !!saved.showGone,
   offPlat: new Set(saved.offPlat || []), offLib: new Set(saved.offLib || []),
   openDistricts: new Set(saved.openDistricts || [])
 };
 function save(){
-  store.set("filters", {q: state.q, sort: state.sort, freeOnly: state.freeOnly,
+  store.set("filters", {q: state.q, sort: state.sort, freeOnly: state.freeOnly, showGone: state.showGone,
     offPlat: [...state.offPlat], offLib: [...state.offLib], openDistricts: [...state.openDistricts]});
 }
-const isDefault = () => !state.q.trim() && state.sort === "az" && !state.freeOnly && !state.offPlat.size && !state.offLib.size;
+const isDefault = () => !state.q.trim() && state.sort === "az" && !state.freeOnly && !state.showGone && !state.offPlat.size && !state.offLib.size;
 
 // VÖBB statuses look like "Ausgeliehen - Fällig am: 20.10.2026 - Hülle beschädigt":
 // a base status, a due date for loans, then an optional staff note about the copy's condition.
@@ -300,14 +303,16 @@ function load(data){
   buildPlatList(); buildLibList(); render();
 }
 
-const visibleCopies = g => (g.copies || []).filter(x => !state.offLib.has(x.library));
+// Lost, missing and "not on shelf" copies can't be borrowed, so they stay hidden unless asked for.
+const visibleCopies = g => (g.copies || []).filter(x => !state.offLib.has(x.library)
+  && (state.showGone || copyStatus(x.status).kind !== "gone"));
 
 function matches(g){
   if (state.offPlat.has(g.platform)) return false;
   const q = state.q.trim().toLowerCase();
   if (q && !g.title.toLowerCase().includes(q)) return false;
   const c = visibleCopies(g);
-  if (state.offLib.size && !c.length) return false;
+  if (!c.length && (state.offLib.size || !state.showGone)) return false;
   if (state.freeOnly && !c.some(x => isFree(x.status))) return false;
   return true;
 }
@@ -340,6 +345,7 @@ function renderChips(){
   const chips = [];
   if (state.q.trim()) chips.push([`Search: “${state.q.trim()}”`, () => { state.q = ""; }]);
   if (state.freeOnly) chips.push(["On the shelf now", () => { state.freeOnly = false; }]);
+  if (state.showGone) chips.push(["Showing unavailable copies", () => { state.showGone = false; }]);
   if (state.offPlat.size){
     const on = [...platChecks.keys()].filter(p => !state.offPlat.has(p));
     chips.push([`Platform: ${on.length ? on.join(", ") : "none"}`, () => state.offPlat.clear()]);
@@ -437,6 +443,7 @@ function buildDetail(g, c){
 
 function render(){
   $("#freeOnly").checked = state.freeOnly;
+  $("#showGone").checked = state.showGone;
   $("#sort").value = state.sort;
   if ($("#q").value !== state.q) $("#q").value = state.q;
   $("#reset").disabled = isDefault();
@@ -549,7 +556,7 @@ function syncChecks(){
 function setOff(set, keys, off){ for (const k of keys) off ? set.add(k) : set.delete(k); }
 function saveAndRender(){ save(); render(); }
 function resetFilters(){
-  state.q = ""; state.sort = "az"; state.freeOnly = false; state.offPlat.clear(); state.offLib.clear();
+  state.q = ""; state.sort = "az"; state.freeOnly = false; state.showGone = false; state.offPlat.clear(); state.offLib.clear();
   saveAndRender();
 }
 
@@ -562,6 +569,7 @@ document.querySelectorAll("[data-all],[data-none]").forEach(b => b.onclick = () 
 $("#q").oninput = e => { state.q = e.target.value; saveAndRender(); };
 $("#sort").onchange = e => { state.sort = e.target.value; saveAndRender(); };
 $("#freeOnly").onchange = e => { state.freeOnly = e.target.checked; saveAndRender(); };
+$("#showGone").onchange = e => { state.showGone = e.target.checked; saveAndRender(); };
 $("#reset").onclick = resetFilters;
 
 function showFilters(open){
