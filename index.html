@@ -16,8 +16,8 @@
   --yellow:#F2C800; --on-yellow:#14213D; --free:#1F8A4C; --busy:#9AA1AE;
   --display:"Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
   --body:system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --side:300px;
   box-sizing:border-box;
-  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
@@ -26,29 +26,44 @@
   }
 }
 *,*::before,*::after{box-sizing:inherit}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.45 var(--body);-webkit-text-size-adjust:100%}
-button,input{font:inherit;color:inherit}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.45 var(--body);-webkit-text-size-adjust:100%;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+button,input,select{font:inherit;color:inherit}
 :focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
 
-header{padding:20px 16px 8px;max-width:640px;margin:0 auto}
-h1{font:800 clamp(34px,10vw,52px)/.95 var(--display);letter-spacing:-.02em;margin:0}
+.page{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:var(--side) minmax(0,1fr);gap:0 32px;padding:0 16px}
+
+/* Sidebar */
+.filters{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;overscroll-behavior:contain;
+  padding:20px 4px 32px 0;display:grid;gap:22px;align-content:start}
+.filters-head{display:none}
+.group h2{font:800 15px/1 var(--display);letter-spacing:.02em;text-transform:uppercase;color:var(--soft);margin:0 0 10px}
+.group-top{display:flex;justify-content:space-between;align-items:baseline}
+.group-top h2{margin-bottom:10px}
+.links{display:flex;gap:10px;font-size:13px}
+.links button{border:0;background:none;padding:0;color:var(--soft);text-decoration:underline;cursor:pointer}
+input[type=search]{width:100%;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:11px 12px;font-size:16px}
+select{width:100%;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:10px 12px;font-size:15px}
+.check{display:flex;align-items:center;gap:10px;padding:5px 0;font-size:15px;cursor:pointer}
+.check input{width:18px;height:18px;margin:0;flex:none;accent-color:var(--ink)}
+.check .n{margin-left:auto;color:var(--soft);font-size:13px;font-variant-numeric:tabular-nums}
+.check.off{color:var(--soft)}
+.plat-list .check input,.shelf input{accent-color:var(--free)}
+
+.district{border-top:1px solid var(--line);padding:6px 0}
+.district > .check{font-weight:700}
+.district .libs{padding-left:28px}
+.district .libs .check{font-size:14px;padding:3px 0}
+.closed{color:var(--soft);font-size:12px}
+
+/* Results */
+main{min-width:0;padding:20px 0 40px}
+h1{font:800 clamp(34px,6vw,52px)/.95 var(--display);letter-spacing:-.02em;margin:0}
 .meta{color:var(--soft);font-size:14px;margin:8px 0 0}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:18px 0 4px}
+.count{color:var(--soft);font-size:14px;margin:0}
+.open-filters{display:none;border:2px solid var(--ink);background:var(--yellow);color:var(--on-yellow);border-radius:10px;padding:8px 14px;font-weight:600;cursor:pointer}
 
-.controls{position:sticky;top:0;z-index:5;background:var(--paper);padding:10px 16px 12px;border-bottom:1px solid var(--line)}
-.controls-in{max-width:640px;margin:0 auto;display:grid;gap:10px}
-.switch{display:grid;grid-template-columns:repeat(5,1fr);border:2px solid var(--ink);border-radius:14px;overflow:hidden}
-.switch button{border:0;background:transparent;padding:12px 0;font:800 20px/1 var(--display);cursor:pointer}
-.switch button+button{border-left:2px solid var(--ink)}
-.switch button[aria-pressed="true"]{background:var(--yellow);color:var(--on-yellow)}
-.row{display:flex;gap:8px;align-items:center}
-input[type=search]{flex:1;min-width:0;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:11px 12px;font-size:16px}
-.toggle{display:flex;align-items:center;gap:8px;font-size:15px;white-space:nowrap;cursor:pointer}
-.toggle input{width:20px;height:20px;accent-color:var(--free)}
-.libs-btn{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:10px 12px;font-size:15px;cursor:pointer;white-space:nowrap}
-
-main{max-width:640px;margin:0 auto;padding:8px 16px 40px}
-.count{color:var(--soft);font-size:14px;margin:10px 0}
 ul.games{list-style:none;margin:0;padding:0}
 .game{border-bottom:1px solid var(--line)}
 .game > button{all:unset;display:grid;grid-template-columns:1fr auto;gap:4px 12px;width:100%;padding:14px 0;cursor:pointer}
@@ -63,56 +78,82 @@ ul.games{list-style:none;margin:0;padding:0}
 .dot{width:10px;height:10px;border-radius:50%;background:var(--busy);margin-top:6px}
 .dot.free{background:var(--free)}
 .small{color:var(--soft);font-size:13px}
+.dist{color:var(--soft)}
 
 .empty{padding:32px 0;color:var(--soft)}
 .empty h2{font:800 24px/1.1 var(--display);color:var(--ink);margin:0 0 8px}
 .empty ol{padding-left:20px}
-.empty button{margin-top:8px;border:2px solid var(--ink);background:var(--yellow);color:var(--on-yellow);border-radius:10px;padding:10px 14px;font-weight:600;cursor:pointer}
 
-dialog{border:0;border-radius:18px 18px 0 0;margin:auto 0 0;width:100%;max-width:100%;max-height:80vh;padding:0;background:var(--card);color:var(--ink)}
-dialog::backdrop{background:rgba(10,15,30,.5)}
-.sheet-head{position:sticky;top:0;background:var(--card);display:flex;justify-content:space-between;align-items:center;padding:16px;border-bottom:1px solid var(--line)}
-.sheet-head h2{font:800 22px/1 var(--display);margin:0}
-.sheet-head button{border:0;background:var(--yellow);color:var(--on-yellow);border-radius:10px;padding:8px 14px;font-weight:600;cursor:pointer}
-.lib-list{padding:8px 16px calc(24px + env(safe-area-inset-bottom,0px))}
-.lib-list label{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
-.lib-list input{width:20px;height:20px;accent-color:var(--ink)}
-@media (prefers-reduced-motion:no-preference){.game.open .copies{animation:in .15s ease-out}@keyframes in{from{opacity:0;transform:translateY(-4px)}}}
+.scrim{display:none}
+
+/* Phones and small tablets: sidebar slides in from the left */
+@media (max-width:860px){
+  .page{grid-template-columns:minmax(0,1fr);padding:0 16px}
+  .open-filters{display:inline-block}
+  .filters{position:fixed;inset:0 auto 0 0;z-index:20;width:min(88vw,360px);max-height:none;height:100%;
+    background:var(--paper);padding:0 16px calc(24px + env(safe-area-inset-bottom,0px));
+    transform:translateX(-105%);visibility:hidden;box-shadow:0 0 40px rgba(0,0,0,.25)}
+  .filters.shown{transform:none;visibility:visible}
+  .filters-head{display:flex;position:sticky;top:0;z-index:1;background:var(--paper);justify-content:space-between;align-items:center;
+    padding:calc(14px + env(safe-area-inset-top,0px)) 0 12px;border-bottom:1px solid var(--line)}
+  .filters-head h2{font:800 22px/1 var(--display);margin:0}
+  .filters-head button{border:0;background:var(--yellow);color:var(--on-yellow);border-radius:10px;padding:8px 14px;font-weight:600;cursor:pointer}
+  .scrim.shown{display:block;position:fixed;inset:0;z-index:15;background:rgba(10,15,30,.5)}
+}
+@media (prefers-reduced-motion:no-preference){
+  .filters{transition:transform .2s ease-out,visibility .2s}
+  .game.open .copies{animation:in .15s ease-out}@keyframes in{from{opacity:0;transform:translateY(-4px)}}
+}
 </style>
 </head>
 <body>
-<header>
-  <h1>Library games<br>in Berlin</h1>
-  <p class="meta" id="updated">Loading…</p>
-</header>
+<div class="page">
+  <aside class="filters" id="filters" aria-label="Filters and sorting">
+    <div class="filters-head"><h2>Filters</h2><button id="closeFilters">Show games</button></div>
 
-<div class="controls">
-  <div class="controls-in">
-    <div class="switch" role="group" aria-label="Platform">
-      <button data-p="PS5" aria-pressed="false">PS5</button>
-      <button data-p="PS4" aria-pressed="false">PS4</button>
-      <button data-p="Switch 2" aria-pressed="false">Switch 2</button>
-      <button data-p="Switch" aria-pressed="false">Switch</button>
-      <button data-p="ALL" aria-pressed="true">All</button>
+    <div class="group">
+      <h2><label for="q">Search</label></h2>
+      <input type="search" id="q" placeholder="Search a game" autocomplete="off">
     </div>
-    <div class="row">
-      <input type="search" id="q" placeholder="Search a game" aria-label="Search a game" autocomplete="off">
-      <button class="libs-btn" id="libsBtn">My libraries</button>
+
+    <div class="group">
+      <h2><label for="sort">Sort by</label></h2>
+      <select id="sort">
+        <option value="az">Title A–Z</option>
+        <option value="za">Title Z–A</option>
+        <option value="free">Most on the shelf</option>
+        <option value="copies">Most copies</option>
+      </select>
     </div>
-    <label class="toggle"><input type="checkbox" id="freeOnly"> Only games on the shelf now</label>
-  </div>
+
+    <div class="group">
+      <h2>Availability</h2>
+      <label class="check shelf"><input type="checkbox" id="freeOnly"> Only games on the shelf now</label>
+    </div>
+
+    <fieldset class="group" style="border:0;margin:0;padding:0">
+      <div class="group-top"><h2>Platform</h2><div class="links"><button data-all="plat">All</button><button data-none="plat">None</button></div></div>
+      <div class="plat-list" id="platList"></div>
+    </fieldset>
+
+    <fieldset class="group" style="border:0;margin:0;padding:0">
+      <div class="group-top"><h2>Libraries</h2><div class="links"><button data-all="lib">All</button><button data-none="lib">None</button></div></div>
+      <div id="libList"></div>
+    </fieldset>
+  </aside>
+  <div class="scrim" id="scrim"></div>
+
+  <main>
+    <h1>Library games<br>in Berlin</h1>
+    <p class="meta" id="updated">Loading…</p>
+    <div class="bar">
+      <p class="count" id="count" aria-live="polite"></p>
+      <button class="open-filters" id="openFilters" aria-controls="filters" aria-expanded="false">Filters &amp; sort</button>
+    </div>
+    <ul class="games" id="list"></ul>
+    <div class="empty" id="empty" hidden></div>
+  </main>
 </div>
-
-<main>
-  <p class="count" id="count"></p>
-  <ul class="games" id="list"></ul>
-  <div class="empty" id="empty" hidden></div>
-</main>
-
-<dialog id="libs">
-  <div class="sheet-head"><h2>My libraries</h2><button id="libsDone">Done</button></div>
-  <div class="lib-list" id="libList"></div>
-</dialog>
 
 <script>
 const $ = s => document.querySelector(s);
@@ -120,46 +161,66 @@ const store = {
   get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d }catch{ return d } },
   set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)) }catch{} }
 };
+const PLATFORMS = ["PS5", "PS4", "Switch 2", "Switch"];
+// Everything is on by default, so we remember what the viewer switched off.
 const state = {
-  games: [], platform: store.get("platform","ALL"), q: "",
-  freeOnly: store.get("freeOnly", false), myLibs: new Set(store.get("myLibs", [])), sample: false
+  games: [], q: "", sort: store.get("sort", "az"),
+  freeOnly: store.get("freeOnly", false),
+  offPlat: new Set(store.get("offPlatforms", [])),
+  offLib: new Set(store.get("offLibraries", [])),
+  libs: []
 };
 
 const isFree = s => /verfügbar|ausleihbar|im regal|vorhanden|available/i.test(s||"") && !/nicht|entliehen|bestellt|vorgemerkt|unterwegs/i.test(s||"");
-const shortLib = l => (l||"Unknown library").replace(/^[^:]+:\s*/,"");
 
-const SAMPLE = {updated:null, games:[
-]};
+// VÖBB names libraries "District: Name". A few come without a district.
+const NO_DISTRICT = {"Bodo-Uhse-Bibliothek": "Lichtenberg", "Stadtteilbibliothek Hakenfelde": "Spandau"};
+const DISTRICT_NAMES = {"Neukoelln": "Neukölln", "Tempelhof-Schoeneberg": "Tempelhof-Schöneberg",
+  "Treptow-Koepenick": "Treptow-Köpenick", "ZLB": "Zentral- und Landesbibliothek"};
+function parseLib(raw){
+  let l = (raw || "Unknown library").trim(), closed = false;
+  const c = l.match(/\s*-\s*ist zurzeit geschlossen$/i);
+  if (c){ closed = true; l = l.slice(0, c.index); }
+  let district, name;
+  const m = l.match(/^([^:]+):\s*(.+)$/);
+  if (m){ district = m[1]; name = m[2]; } else { district = NO_DISTRICT[l] || "Other"; name = l; }
+  return {raw, district: DISTRICT_NAMES[district] || district, name, closed};
+}
+const libInfo = new Map();
+const lib = raw => { if (!libInfo.has(raw)) libInfo.set(raw, parseLib(raw)); return libInfo.get(raw); };
 
-function load(data, sample){
+function load(data){
   state.games = data.games || [];
-  state.sample = sample;
-  $("#updated").textContent = sample ? "Showing sample data, not real VÖBB results"
-    : data.updated ? "Updated " + new Date(data.updated).toLocaleString("de-DE",{dateStyle:"medium",timeStyle:"short"})
+  $("#updated").textContent = data.updated
+    ? "Updated " + new Date(data.updated).toLocaleString("de-DE",{dateStyle:"medium",timeStyle:"short"})
     : "Not crawled yet";
-  buildLibList(); render();
+  state.libs = [...new Set(state.games.flatMap(g => (g.copies||[]).map(c => c.library)).filter(Boolean))];
+  buildPlatList(); buildLibList(); render();
 }
 
-function visibleCopies(g){
-  let c = g.copies || [];
-  if (state.myLibs.size) c = c.filter(x => state.myLibs.has(x.library));
-  return c;
+const visibleCopies = g => (g.copies || []).filter(x => !state.offLib.has(x.library));
+
+function matches(g){
+  if (state.offPlat.has(g.platform)) return false;
+  const q = state.q.trim().toLowerCase();
+  if (q && !g.title.toLowerCase().includes(q)) return false;
+  const c = visibleCopies(g);
+  if (state.offLib.size && !c.length) return false;
+  if (state.freeOnly && !c.some(x => isFree(x.status))) return false;
+  return true;
 }
+
+const SORTS = {
+  az: (a, b) => a.g.title.localeCompare(b.g.title, "de"),
+  za: (a, b) => b.g.title.localeCompare(a.g.title, "de"),
+  free: (a, b) => b.free - a.free || b.c.length - a.c.length || SORTS.az(a, b),
+  copies: (a, b) => b.c.length - a.c.length || b.free - a.free || SORTS.az(a, b)
+};
 
 function render(){
-  document.querySelectorAll(".switch button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.p===state.platform)));
   $("#freeOnly").checked = state.freeOnly;
-  $("#libsBtn").textContent = state.myLibs.size ? `My libraries (${state.myLibs.size})` : "My libraries";
-
-  const q = state.q.trim().toLowerCase();
-  const rows = state.games.filter(g => {
-    if (state.platform!=="ALL" && g.platform!==state.platform) return false;
-    if (q && !g.title.toLowerCase().includes(q)) return false;
-    const c = visibleCopies(g);
-    if (state.myLibs.size && !c.length) return false;
-    if (state.freeOnly && !c.some(x => isFree(x.status))) return false;
-    return true;
-  });
+  $("#sort").value = state.sort;
+  syncChecks();
 
   const list = $("#list"); list.textContent = "";
   const empty = $("#empty");
@@ -172,65 +233,146 @@ function render(){
       <ol><li>Open your repo on GitHub, then Actions.</li><li>Pick "Crawl VÖBB games" and tap Run workflow.</li><li>Come back in about an hour.</li></ol>`;
     return;
   }
-  empty.hidden = rows.length > 0;
-  if (!rows.length){ empty.innerHTML = `<h2>Nothing matches</h2><p>Try another search, switch platform, or turn off "Only games on the shelf now".</p>`; }
 
-  $("#count").textContent = `${rows.length} ${rows.length===1?"game":"games"}`;
-
-  for (const g of rows){
+  const rows = state.games.filter(matches).map(g => {
     const c = visibleCopies(g);
-    const free = c.filter(x => isFree(x.status));
+    return {g, c, free: c.filter(x => isFree(x.status)).length};
+  }).sort(SORTS[state.sort] || SORTS.az);
+
+  empty.hidden = rows.length > 0;
+  if (!rows.length) empty.innerHTML = `<h2>Nothing matches</h2><p>Try another search, tick more platforms or libraries, or turn off "Only games on the shelf now".</p>`;
+  const label = `${rows.length} ${rows.length===1?"game":"games"}`;
+  $("#count").textContent = label;
+  $("#closeFilters").textContent = `Show ${label}`;
+
+  const frag = document.createDocumentFragment();
+  for (const {g, c, free} of rows){
     const li = document.createElement("li"); li.className = "game";
     const btn = document.createElement("button"); btn.setAttribute("aria-expanded","false");
     const t = document.createElement("span"); t.className="title"; t.textContent = g.title.replace(/\s*\[.*?\]\s*/g," ").trim();
     const p = document.createElement("span"); p.className="plat"; p.textContent = g.platform;
     const a = document.createElement("span"); a.className="avail";
     if (!c.length) a.textContent = "No copy info";
-    else if (free.length) a.innerHTML = `<b>${free.length} on the shelf</b> out of ${c.length} ${c.length===1?"copy":"copies"}`;
+    else if (free) a.innerHTML = `<b>${free} on the shelf</b> out of ${c.length} ${c.length===1?"copy":"copies"}`;
     else a.textContent = `All ${c.length} ${c.length===1?"copy is":"copies are"} out`;
     btn.append(t,p,a);
 
     const ul = document.createElement("ul"); ul.className="copies";
-    for (const x of [...c].sort((a,b)=>isFree(b.status)-isFree(a.status))){
+    const sorted = [...c].sort((x, y) => isFree(y.status) - isFree(x.status)
+      || lib(x.library).district.localeCompare(lib(y.library).district, "de")
+      || lib(x.library).name.localeCompare(lib(y.library).name, "de"));
+    for (const x of sorted){
+      const info = lib(x.library);
       const r = document.createElement("li");
       const d = document.createElement("span"); d.className = "dot" + (isFree(x.status)?" free":"");
-      const info = document.createElement("div");
-      const n = document.createElement("div"); n.textContent = shortLib(x.library);
+      const box = document.createElement("div");
+      const n = document.createElement("div");
+      const dist = document.createElement("span"); dist.className = "dist"; dist.textContent = info.district + " · ";
+      n.append(dist, info.name + (info.closed ? " (closed)" : ""));
       const s = document.createElement("div"); s.className="small"; s.textContent = [x.status, x.shelf].filter(Boolean).join(", ");
-      info.append(n,s); r.append(d,info); ul.append(r);
+      box.append(n,s); r.append(d,box); ul.append(r);
     }
     if (g.url){ const r = document.createElement("li"); r.style.gridTemplateColumns="1fr";
       const a2 = document.createElement("a"); a2.href = g.url; a2.target = "_blank"; a2.rel = "noopener";
       a2.textContent = "Open in VÖBB to reserve"; a2.style.color = "inherit"; a2.style.fontWeight = "600";
       r.append(a2); ul.append(r); }
     btn.onclick = () => { const o = li.classList.toggle("open"); btn.setAttribute("aria-expanded", String(o)); };
-    li.append(btn, ul); list.append(li);
+    li.append(btn, ul); frag.append(li);
+  }
+  list.append(frag);
+}
+
+function checkRow(text, n, onchange){
+  const lab = document.createElement("label"); lab.className = "check";
+  const cb = document.createElement("input"); cb.type = "checkbox"; cb.onchange = () => onchange(cb.checked);
+  const span = document.createElement("span"); span.append(text);
+  lab.append(cb, span);
+  if (n != null){ const c = document.createElement("span"); c.className = "n"; c.textContent = n; lab.append(c); }
+  return {lab, cb};
+}
+
+const platChecks = new Map(), libChecks = new Map(), districtChecks = [];
+
+function buildPlatList(){
+  const box = $("#platList"); box.textContent = ""; platChecks.clear();
+  const counts = {};
+  for (const g of state.games) counts[g.platform] = (counts[g.platform] || 0) + 1;
+  const plats = [...PLATFORMS, ...Object.keys(counts).filter(p => !PLATFORMS.includes(p))];
+  for (const p of plats){
+    const {lab, cb} = checkRow(p, counts[p] || 0, on => { setOff(state.offPlat, [p], !on); saveAndRender(); });
+    if (!counts[p]) lab.classList.add("off");
+    platChecks.set(p, cb); box.append(lab);
   }
 }
 
 function buildLibList(){
-  const libs = [...new Set(state.games.flatMap(g => (g.copies||[]).map(c => c.library)).filter(Boolean))].sort();
-  const box = $("#libList"); box.textContent = "";
-  if (!libs.length){ box.textContent = "Libraries show up here once games are loaded."; return; }
-  for (const l of libs){
-    const lab = document.createElement("label");
-    const cb = document.createElement("input"); cb.type="checkbox"; cb.checked = state.myLibs.has(l);
-    cb.onchange = () => { cb.checked ? state.myLibs.add(l) : state.myLibs.delete(l); store.set("myLibs",[...state.myLibs]); render(); };
-    const txt = document.createElement("span"); txt.textContent = l.replace(":", " ·");
-    lab.append(cb, txt); box.append(lab);
+  const box = $("#libList"); box.textContent = ""; libChecks.clear(); districtChecks.length = 0;
+  if (!state.libs.length){ box.textContent = "Libraries show up here once games are loaded."; return; }
+  const byDistrict = new Map();
+  for (const raw of state.libs){
+    const d = lib(raw).district;
+    if (!byDistrict.has(d)) byDistrict.set(d, []);
+    byDistrict.get(d).push(raw);
+  }
+  // Berlin districts first, then the central library and anything unmatched
+  const last = d => d === "Zentral- und Landesbibliothek" || d === "Other";
+  const districts = [...byDistrict.keys()].sort((a, b) => last(a) - last(b) || a.localeCompare(b, "de"));
+  for (const d of districts){
+    const libs = byDistrict.get(d).sort((a, b) => lib(a).name.localeCompare(lib(b).name, "de"));
+    const wrap = document.createElement("div"); wrap.className = "district";
+    const head = checkRow(d, null, on => { setOff(state.offLib, libs, !on); saveAndRender(); });
+    districtChecks.push({cb: head.cb, libs});
+    const inner = document.createElement("div"); inner.className = "libs";
+    for (const raw of libs){
+      const info = lib(raw);
+      const text = document.createDocumentFragment(); text.append(info.name);
+      if (info.closed){ const c = document.createElement("span"); c.className = "closed"; c.textContent = " (closed)"; text.append(c); }
+      const {lab, cb} = checkRow(text, null, on => { setOff(state.offLib, [raw], !on); saveAndRender(); });
+      libChecks.set(raw, cb); inner.append(lab);
+    }
+    wrap.append(head.lab, inner); box.append(wrap);
   }
 }
 
-document.querySelectorAll(".switch button").forEach(b => b.onclick = () => { state.platform=b.dataset.p; store.set("platform",state.platform); render(); });
+function syncChecks(){
+  for (const [p, cb] of platChecks) cb.checked = !state.offPlat.has(p);
+  for (const [raw, cb] of libChecks) cb.checked = !state.offLib.has(raw);
+  for (const {cb, libs} of districtChecks){
+    const off = libs.filter(l => state.offLib.has(l)).length;
+    cb.checked = off === 0; cb.indeterminate = off > 0 && off < libs.length;
+  }
+}
+
+function setOff(set, keys, off){ for (const k of keys) off ? set.add(k) : set.delete(k); }
+function saveAndRender(){
+  store.set("offPlatforms", [...state.offPlat]); store.set("offLibraries", [...state.offLib]);
+  render();
+}
+
+document.querySelectorAll("[data-all],[data-none]").forEach(b => b.onclick = () => {
+  const plat = (b.dataset.all || b.dataset.none) === "plat";
+  const set = plat ? state.offPlat : state.offLib;
+  const keys = plat ? [...platChecks.keys()] : state.libs;
+  setOff(set, keys, "none" in b.dataset); saveAndRender();
+});
 $("#q").oninput = e => { state.q = e.target.value; render(); };
-$("#freeOnly").onchange = e => { state.freeOnly = e.target.checked; store.set("freeOnly",state.freeOnly); render(); };
-$("#libsBtn").onclick = () => $("#libs").showModal();
-$("#libsDone").onclick = () => $("#libs").close();
+$("#sort").onchange = e => { state.sort = e.target.value; store.set("sort", state.sort); render(); };
+$("#freeOnly").onchange = e => { state.freeOnly = e.target.checked; store.set("freeOnly", state.freeOnly); render(); };
+
+function showFilters(open){
+  $("#filters").classList.toggle("shown", open); $("#scrim").classList.toggle("shown", open);
+  $("#openFilters").setAttribute("aria-expanded", String(open));
+  if (open) $("#closeFilters").focus(); else if (matchMedia("(max-width:860px)").matches) $("#openFilters").focus();
+}
+$("#openFilters").onclick = () => showFilters(true);
+$("#closeFilters").onclick = () => showFilters(false);
+$("#scrim").onclick = () => showFilters(false);
+document.addEventListener("keydown", e => { if (e.key === "Escape" && $("#filters").classList.contains("shown")) showFilters(false); });
 
 fetch("games.json", {cache:"no-store"})
   .then(r => r.ok ? r.json() : Promise.reject())
-  .then(d => load(d, false))
-  .catch(() => load({updated:null,games:[]}, false));
+  .then(load)
+  .catch(() => load({updated:null,games:[]}));
 </script>
 </body>
 </html>
