@@ -1,14 +1,16 @@
 name: Crawl VÖBB games
 on:
   schedule:
-    - cron: "30 4 * * *"
+    # 23:47 UTC = 01:47 Berlin in summer, 00:47 in winter: even a run that uses the full
+    # 5.5 hours (plus GitHub's usual start delay) is done before 08:00 Berlin time.
+    - cron: "47 23 * * *"
   workflow_dispatch:
 permissions:
   contents: write
 jobs:
   crawl:
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    timeout-minutes: 330
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
